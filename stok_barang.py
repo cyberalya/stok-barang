@@ -1,58 +1,14 @@
+# Tab layout untuk fitur berbeda
 import streamlit as st
-import pandas as pd
-import os
 from datetime import datetime
+from io import StringIO
+from html import escape
 
-# --- CSS Styling ---
-st.markdown("""
-    <style>
-    .stApp {
-        font-family: 'Segoe UI', sans-serif;
-        background-color: white;
-        color: black;
-    }
-    label, .stTextInput>div>input, .stNumberInput>div>input,
-    .stNumberInput>div>div>input, .stAlert>div, .css-1cpxqw2 {
-        color: black !important;
-    }
-    .stButton>button {
-        background-color: #00cec9;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        padding: 0.5em 1em;
-    }
-    .stButton>button:hover {
-        background-color: #0984e3;
-        color: white;
-    }
-    .stDownloadButton>button {
-        background-color: #636e72;
-        color: white !important;
-        border-radius: 8px;
-        padding: 0.5em 1em;
-        border: none;
-    }
-    .stDownloadButton>button:hover {
-        background-color: #2d3436;
-        color: white !important;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
-# --- Fungsi Login ---
-def load_users():
-    if os.path.exists("users.csv"):
-        return pd.read_csv("users.csv")
-    return pd.DataFrame(columns=["username", "password"])
-
-def check_login(username, password):
-    users = load_users()
-    return ((users["username"] == username) & (users["password"] == password)).any()
-
-# --- Fungsi Data Barang ---
+# Fungsi simpan dan load data
 @st.cache_data
 def load_data():
+    import pandas as pd
+    import os
     if os.path.exists("stok_data.csv"):
         return pd.read_csv("stok_data.csv")
     return pd.DataFrame(columns=["Nama", "Jumlah", "Harga per Satuan", "Harga per Bal", "Tanggal Input"])
@@ -60,66 +16,88 @@ def load_data():
 def save_data(data):
     data.to_csv("stok_data.csv", index=False)
 
-# --- App ---
-st.set_page_config(page_title="Stok Barang Toko Budi Plastik", page_icon="📦")
-st.title("📦 Stok Barang Toko Budi Plastik")
-
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
-
 if "data" not in st.session_state:
     st.session_state.data = load_data()
 
-if not st.session_state.logged_in:
-    st.subheader("🔐 Login")
-    username = st.text_input("Username")
-    password = st.text_input("Password", type="password")
-    if st.button("Login"):
-        if check_login(username, password):
-            st.session_state.logged_in = True
-            st.success("Login berhasil!")
-        else:
-            st.error("Username/password salah!")
-else:
-    st.subheader("📋 Data Stok Barang")
-    data = st.session_state.data
+# Buat tab: Tabel, Pembelian, Edit
+stok_tab, pembelian_tab, edit_tab = st.tabs(["📊 Tabel Stok", "🛒 Pembelian", "🛠️ Tambah/Edit Barang"])
 
+# TABEL STOK
+with stok_tab:
+    st.write("### 📦 Data Stok Barang")
+    st.dataframe(st.session_state.data)
+
+# PEMBELIAN
+with pembelian_tab:
+    st.write("### 🛒 Pembelian")
+    if not st.session_state.data.empty:
+        selected_item = st.selectbox("Pilih barang untuk dibeli", st.session_state.data.index, format_func=lambda i: f"{st.session_state.data.at[i, 'Nama']}")
+        jumlah_beli = st.number_input("Jumlah dibeli", min_value=1, max_value=int(st.session_state.data.at[selected_item, "Jumlah"]), step=1)
+
+        if st.button("🧾 Cetak Struk Belanja"):
+            barang = st.session_state.data.loc[selected_item].copy()
+            barang["Jumlah"] = jumlah_beli
+            st.session_state.data.at[selected_item, "Jumlah"] -= jumlah_beli
+            save_data(st.session_state.data)
+
+            tanggal_str = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+            html_struk = f"""
+            <div style=\"font-family: monospace; padding: 1em; border: 1px dashed #888; max-width: 400px; margin: auto; background: #fdfdfd;\">
+                <h3 style=\"text-align:center;\">🛍️ toko budi plastik</h3>
+                <p style=\"text-align:center;\">jln.jend.ahmad yani</p>
+                <p>Tanggal: {escape(tanggal_str)}<br><b>Barang Dibeli:</b></p>
+                <hr style=\"border-top: 1px dashed #000;\">
+                <div style='font-family: monospace;'>
+                    {escape(barang['Nama'])} x{int(barang['Jumlah'])} @Rp {barang['Harga per Satuan']:,.0f}<br>
+                    Total: Rp {int(barang['Jumlah'] * barang['Harga per Satuan']):,}
+                    <hr style=\"border-top: 1px dotted #ccc;\">
+                </div>
+                <div style='font-family: monospace; font-weight: bold;'>
+                    TOTAL: Rp {int(barang['Jumlah'] * barang['Harga per Satuan']):,}
+                </div>
+                <p style=\"text-align:center; font-family: monospace;\">-- Terima kasih atas kunjungan Anda --</p>
+            </div>
+            """
+
+            st.markdown(html_struk, unsafe_allow_html=True)
+
+            # Simpan ke file HTML
+            struk_file = StringIO()
+            struk_file.write("<html><body>" + html_struk + "</body></html>")
+            struk_file.seek(0)
+
+            st.download_button("📄 Download Struk (HTML)", data=struk_file, file_name="struk-belanja.html", mime="text/html")
+
+# TAMBAH / EDIT BARANG
+with edit_tab:
+    st.write("### ➕ Tambah Barang Baru")
     nama = st.text_input("Nama Barang")
     jumlah = st.number_input("Jumlah", min_value=0, step=1)
     harga_satuan = st.number_input("Harga per Satuan", min_value=0.0, step=100.0, format="%.2f")
     harga_bal = st.number_input("Harga per Bal", min_value=0.0, step=100.0, format="%.2f")
 
     if st.button("Tambah Barang"):
-        with st.spinner("Menyimpan data..."):
-            tanggal = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            new_data = pd.DataFrame({
-                "Nama": [nama],
-                "Jumlah": [jumlah],
-                "Harga per Satuan": [harga_satuan],
-                "Harga per Bal": [harga_bal],
-                "Tanggal Input": [tanggal]
-            })
-            st.session_state.data = pd.concat([data, new_data], ignore_index=True)
-            save_data(st.session_state.data)
-            st.success("Barang berhasil ditambahkan!")
-
-    st.write("\n### 📊 Tabel Stok")
-    st.dataframe(st.session_state.data)
-
-    if not st.session_state.data.empty:
-        total_nilai = (st.session_state.data["Jumlah"] * st.session_state.data["Harga per Satuan"]).sum()
-        st.info(f"💰 Total Nilai Stok: Rp {total_nilai:,.2f}")
+        tanggal = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        new_data = {
+            "Nama": nama,
+            "Jumlah": jumlah,
+            "Harga per Satuan": harga_satuan,
+            "Harga per Bal": harga_bal,
+            "Tanggal Input": tanggal
+        }
+        st.session_state.data = pd.concat([st.session_state.data, pd.DataFrame([new_data])], ignore_index=True)
+        save_data(st.session_state.data)
+        st.success("Barang berhasil ditambahkan!")
 
     st.write("### ✏️ Edit / Hapus Barang")
-
     if not st.session_state.data.empty:
         selected_index = st.selectbox("Pilih barang untuk edit/hapus", st.session_state.data.index, format_func=lambda i: f"{st.session_state.data.at[i, 'Nama']} (Jumlah: {st.session_state.data.at[i, 'Jumlah']})")
-
         selected_row = st.session_state.data.loc[selected_index]
         new_nama = st.text_input("Edit Nama", selected_row["Nama"])
-        new_jumlah = st.number_input("Edit Jumlah", min_value=0, step=1, value=int(selected_row["Jumlah"]))
-        new_satuan = st.number_input("Edit Harga per Satuan", min_value=0.0, step=100.0, value=float(selected_row["Harga per Satuan"]), format="%.2f")
-        new_bal = st.number_input("Edit Harga per Bal", min_value=0.0, step=100.0, value=float(selected_row["Harga per Bal"]), format="%.2f")
+        new_jumlah = st.number_input("Edit Jumlah", value=int(selected_row["Jumlah"]), step=1)
+        new_satuan = st.number_input("Edit Harga per Satuan", value=float(selected_row["Harga per Satuan"]), format="%.2f")
+        new_bal = st.number_input("Edit Harga per Bal", value=float(selected_row["Harga per Bal"]), format="%.2f")
 
         col1, col2 = st.columns(2)
         with col1:
@@ -131,7 +109,6 @@ else:
                 save_data(st.session_state.data)
                 st.success("Data berhasil diperbarui!")
                 st.rerun()
-
         with col2:
             if st.button("🗑️ Hapus Barang"):
                 st.session_state.data = st.session_state.data.drop(selected_index).reset_index(drop=True)
@@ -140,40 +117,4 @@ else:
                 st.rerun()
     else:
         st.info("Belum ada data untuk diedit atau dihapus.")
-
-    if not st.session_state.data.empty:
-        st.download_button("📥 Download Data CSV", st.session_state.data.to_csv(index=False).encode('utf-8'), "stok_data.csv", "text/csv")
-
-    # --- Fitur Cetak Struk ---
-    if st.button("🧾 Cetak Struk Belanja"):
-        st.markdown("""
-        <div style="font-family: monospace; padding: 1em; border: 1px dashed #888; max-width: 400px; margin: auto; background: #fdfdfd;">
-            <h3 style="text-align:center;">🛍️ toko budi plastik</h3>
-            <p style="text-align:center;">jln.jend.ahmad yani</p>
-            <p>Tanggal: {}</p>
-            <hr style="border-top: 1px dashed #000;">
-        """.format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')), unsafe_allow_html=True)
-
-        for i, row in st.session_state.data.iterrows():
-            st.markdown(f"""
-                <div style='font-family: monospace;'>
-                    {row['Nama']} x{int(row['Jumlah'])} @Rp {row['Harga per Satuan']:,.0f}<br>
-                    Total: Rp {int(row['Jumlah'] * row['Harga per Satuan']):,}
-                    <hr style="border-top: 1px dotted #ccc;">
-                </div>
-            """, unsafe_allow_html=True)
-
-        total_nilai = (st.session_state.data["Jumlah"] * st.session_state.data["Harga per Satuan"]).sum()
-        st.markdown(f"""
-            <div style='font-family: monospace; font-weight: bold;'>
-                TOTAL: Rp {total_nilai:,.0f}
-            </div>
-            <p style="text-align:center; font-family: monospace;">-- Terima kasih atas kunjungan Anda --</p>
-        </div>
-        """, unsafe_allow_html=True)
-
-    if st.button("Logout"):
-        st.session_state.logged_in = False
-        st.rerun()
-
 

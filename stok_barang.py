@@ -14,7 +14,7 @@ st.markdown(
         background-color: #ffffff !important;
         color: #000000 !important;
     }
-    body, div, p, h3, h1, h2, h4, h5, h6 {
+    body, div, p, h3, h1, h2, h4, h5, h6, label, span, input, select, option, textarea, .stSelectbox > div > div {
         color: #000000 !important;
     }
     .stDataFrame table {
@@ -30,6 +30,14 @@ st.markdown(
         background-color: #dcdcdc !important;
         color: black !important;
         font-weight: bold;
+    }
+    button[kind="primary"] {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+    }
+    .stButton>button {
+        background-color: #000000 !important;
+        color: #ffffff !important;
     }
     </style>
     """,
@@ -148,4 +156,3 @@ with edit_tab:
                 st.rerun()
     else:
         st.info("Belum ada data untuk diedit atau dihapus.")
-

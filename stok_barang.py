@@ -6,13 +6,16 @@ from html import escape
 import pandas as pd
 import os
 
-# Styling global supaya teks hitam dan background putih + tabel lebih kontras
+# Styling global supaya latar putih dan teks hitam, termasuk layout utama
 st.markdown(
     """
     <style>
-    body, div, p, h3 {
-        color: #000 !important;
-        background-color: #fff !important;
+    html, body, .main, .block-container, .stApp {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+    body, div, p, h3, h1, h2, h4, h5, h6 {
+        color: #000000 !important;
     }
     .stDataFrame table {
         background-color: white !important;

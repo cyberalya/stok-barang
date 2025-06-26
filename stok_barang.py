@@ -8,6 +8,8 @@ st.markdown("""
     <style>
     .stApp {
         font-family: 'Segoe UI', sans-serif;
+        background-color: white;
+        color: black;
     }
     .stButton>button {
         background-color: #00cec9;
@@ -133,4 +135,5 @@ else:
     if st.button("Logout"):
         st.session_state.logged_in = False
         st.rerun()
+
 

@@ -6,7 +6,7 @@ from html import escape
 import pandas as pd
 import os
 
-# Styling global supaya latar putih dan teks hitam, termasuk layout utama
+# Styling global supaya latar putih dan teks hitam, termasuk tombol
 st.markdown(
     """
     <style>
@@ -31,13 +31,18 @@ st.markdown(
         color: black !important;
         font-weight: bold;
     }
-    button[kind="primary"] {
+    .stButton > button {
         background-color: #000000 !important;
         color: #ffffff !important;
+        font-weight: bold !important;
     }
-    .stButton>button {
-        background-color: #000000 !important;
-        color: #ffffff !important;
+    .stTextInput input, .stNumberInput input {
+        background-color: white !important;
+        color: black !important;
+    }
+    .stSelectbox div[data-baseweb="select"] {
+        background-color: white !important;
+        color: black !important;
     }
     </style>
     """,

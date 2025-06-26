@@ -6,16 +6,21 @@ from html import escape
 import pandas as pd
 import os
 
-# Styling global supaya latar putih dan teks hitam, termasuk tombol
+# Styling global supaya latar putih dan teks hitam, termasuk input & tombol
 theme_css = """
 <style>
+/* Warna latar dan teks umum */
 html, body, .main, .block-container, .stApp {
     background-color: #ffffff !important;
     color: #000000 !important;
 }
-body, div, p, h3, h1, h2, h4, h5, h6, label, span, input, select, option, textarea, .stSelectbox > div > div {
+
+/* Warna semua teks */
+body, div, p, h3, h1, h2, h4, h5, h6, label, span, input, select, option, textarea {
     color: #000000 !important;
 }
+
+/* DataFrame Table */
 .stDataFrame table {
     background-color: white !important;
     color: black !important;
@@ -30,19 +35,28 @@ body, div, p, h3, h1, h2, h4, h5, h6, label, span, input, select, option, textar
     color: black !important;
     font-weight: bold;
 }
+
+/* Tombol */
 .stButton > button {
     background-color: #000000 !important;
     color: #ffffff !important;
     font-weight: bold !important;
+    border: 1px solid #333;
 }
-.stTextInput input, .stNumberInput input {
+
+/* Input Text dan Angka */
+input[type="text"], input[type="number"], .stTextInput input, .stNumberInput input {
     background-color: white !important;
     color: black !important;
 }
+
+/* Select box */
 .stSelectbox div[data-baseweb="select"] {
     background-color: white !important;
     color: black !important;
 }
+
+/* Label teks */
 label[data-testid="stWidgetLabel"] > div {
     color: black !important;
     font-weight: bold;
@@ -168,4 +182,3 @@ with edit_tab:
                 st.rerun()
     else:
         st.info("Belum ada data untuk diedit atau dihapus.")
-

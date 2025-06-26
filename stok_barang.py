@@ -197,7 +197,9 @@ else:
         if st.session_state.data.empty:
             st.warning("Belum ada data barang untuk dijual.")
         else:
-            nama_barang = st.selectbox("Pilih Barang", st.session_state.data["Nama"].unique())
+            keyword = st.text_input("🔍 Cari nama barang")
+            filtered_names = st.session_state.data[st.session_state.data["Nama"].str.contains(keyword, case=False, na=False)]["Nama"].unique()
+            nama_barang = st.selectbox("Pilih Barang", filtered_names)
             jumlah_jual = st.number_input("Jumlah yang Dijual", min_value=1, step=1)
             if st.button("Simpan Penjualan"):
                 index = st.session_state.data[st.session_state.data["Nama"] == nama_barang].index[0]

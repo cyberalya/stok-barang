@@ -15,12 +15,18 @@ st.markdown(
         background-color: #fff !important;
     }
     .stDataFrame table {
-        background-color: #fff !important;
-        color: #000 !important;
+        background-color: white !important;
+        color: black !important;
     }
-    .stDataFrame th, .stDataFrame td {
-        background-color: #f5f5f5 !important;
-        color: #000 !important;
+    .stDataFrame tbody td {
+        background-color: white !important;
+        color: black !important;
+        font-weight: 500;
+    }
+    .stDataFrame thead th {
+        background-color: #dcdcdc !important;
+        color: black !important;
+        font-weight: bold;
     }
     </style>
     """,
@@ -139,3 +145,4 @@ with edit_tab:
                 st.rerun()
     else:
         st.info("Belum ada data untuk diedit atau dihapus.")
+

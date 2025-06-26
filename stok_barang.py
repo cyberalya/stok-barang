@@ -160,6 +160,3 @@ with edit_tab:
                 st.rerun()
     else:
         st.info("Belum ada data untuk diedit atau dihapus.")
-
-    else:
-        st.info("Belum ada data untuk diedit atau dihapus.")

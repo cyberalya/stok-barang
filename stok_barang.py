@@ -3,6 +3,32 @@ import pandas as pd
 import os
 from datetime import datetime
 
+# --- CSS Styling ---
+st.markdown("""
+    <style>
+    .stApp {
+        background-color: #f2f4f7;
+        color: #2d3436;
+        font-family: 'Segoe UI', sans-serif;
+    }
+    .stButton>button {
+        background-color: #00cec9;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.5em 1em;
+    }
+    .stButton>button:hover {
+        background-color: #0984e3;
+        color: white;
+    }
+    .stTextInput>div>input, .stNumberInput>div>input {
+        background-color: #ffffff;
+        color: #2d3436;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 # --- Fungsi Login ---
 def load_users():
     if os.path.exists("users.csv"):
@@ -23,8 +49,8 @@ def save_data(data):
     data.to_csv("stok_data.csv", index=False)
 
 # --- App ---
-st.set_page_config(page_title="Stok Barang", page_icon="📦")
-st.title("📦 Aplikasi Stok Barang")
+st.set_page_config(page_title="Stok Barang Toko Budi Plastik", page_icon="📦")
+st.title("📦 Stok Barang Toko Budi Plastik")
 
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
@@ -104,6 +130,11 @@ else:
     # --- Fitur Export Data ---
     if not data.empty:
         st.download_button("📥 Download Data CSV", data.to_csv(index=False).encode('utf-8'), "stok_data.csv", "text/csv")
+
+    if st.button("Logout"):
+        st.session_state.logged_in = False
+        st.rerun()
+
 
     if st.button("Logout"):
         st.session_state.logged_in = False

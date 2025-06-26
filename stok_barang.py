@@ -1,14 +1,14 @@
 # Tab layout untuk fitur berbeda
 import streamlit as st
 from datetime import datetime
-from io import StringIO
+from io import BytesIO
 from html import escape
+import pandas as pd
+import os
 
 # Fungsi simpan dan load data
 @st.cache_data
 def load_data():
-    import pandas as pd
-    import os
     if os.path.exists("stok_data.csv"):
         return pd.read_csv("stok_data.csv")
     return pd.DataFrame(columns=["Nama", "Jumlah", "Harga per Satuan", "Harga per Bal", "Tanggal Input"])
@@ -63,8 +63,9 @@ with pembelian_tab:
             st.markdown(html_struk, unsafe_allow_html=True)
 
             # Simpan ke file HTML
-            struk_file = StringIO()
-            struk_file.write("<html><body>" + html_struk + "</body></html>")
+            struk_file = BytesIO()
+            html_content = f"<html><body>{html_struk}</body></html>"
+            struk_file.write(html_content.encode("utf-8"))
             struk_file.seek(0)
 
             st.download_button("📄 Download Struk (HTML)", data=struk_file, file_name="struk-belanja.html", mime="text/html")

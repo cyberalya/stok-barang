@@ -30,6 +30,10 @@ st.markdown("""
     .stNumberInput>div>div>input {
         color: #2d3436 !important;
     }
+    .stSelectbox > div > div {
+        background-color: #ffffff !important;
+        color: #2d3436 !important;
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -138,4 +142,3 @@ else:
     if st.button("Logout"):
         st.session_state.logged_in = False
         st.rerun()
-

@@ -7,47 +7,46 @@ import pandas as pd
 import os
 
 # Styling global supaya latar putih dan teks hitam, termasuk tombol
-st.markdown(
-    """
-    <style>
-    html, body, .main, .block-container, .stApp {
-        background-color: #ffffff !important;
-        color: #000000 !important;
-    }
-    body, div, p, h3, h1, h2, h4, h5, h6, label, span, input, select, option, textarea, .stSelectbox > div > div {
-        color: #000000 !important;
-    }
-    .stDataFrame table {
-        background-color: white !important;
-        color: black !important;
-    }
-    .stDataFrame tbody td {
-        background-color: white !important;
-        color: black !important;
-        font-weight: 500;
-    }
-    .stDataFrame thead th {
-        background-color: #dcdcdc !important;
-        color: black !important;
-        font-weight: bold;
-    }
-    .stButton > button {
-        background-color: #000000 !important;
-        color: #ffffff !important;
-        font-weight: bold !important;
-    }
-    .stTextInput input, .stNumberInput input {
-        background-color: white !important;
-        color: black !important;
-    }
-    .stSelectbox div[data-baseweb="select"] {
-        background-color: white !important;
-        color: black !important;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+theme_css = """
+<style>
+html, body, .main, .block-container, .stApp {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+}
+body, div, p, h3, h1, h2, h4, h5, h6, label, span, input, select, option, textarea, .stSelectbox > div > div {
+    color: #000000 !important;
+}
+.stDataFrame table {
+    background-color: white !important;
+    color: black !important;
+}
+.stDataFrame tbody td {
+    background-color: white !important;
+    color: black !important;
+    font-weight: 500;
+}
+.stDataFrame thead th {
+    background-color: #dcdcdc !important;
+    color: black !important;
+    font-weight: bold;
+}
+.stButton > button {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    font-weight: bold !important;
+}
+.stTextInput input, .stNumberInput input {
+    background-color: white !important;
+    color: black !important;
+}
+.stSelectbox div[data-baseweb="select"] {
+    background-color: white !important;
+    color: black !important;
+}
+</style>
+"""
+
+st.markdown(theme_css, unsafe_allow_html=True)
 
 # Fungsi simpan dan load data
 @st.cache_data
@@ -86,20 +85,20 @@ with pembelian_tab:
             tanggal_str = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
             html_struk = f"""
-            <div style=\"font-family: monospace; color: #000000; padding: 1em; border: 1px dashed #888; max-width: 400px; margin: auto; background: #ffffff;\">
-                <h3 style=\"text-align:center;\">🛍️ toko budi plastik</h3>
-                <p style=\"text-align:center;\">jln.jend.ahmad yani</p>
+            <div style='font-family: monospace; color: #000000; padding: 1em; border: 1px dashed #888; max-width: 400px; margin: auto; background: #ffffff;'>
+                <h3 style='text-align:center;'>🛍️ toko budi plastik</h3>
+                <p style='text-align:center;'>jln.jend.ahmad yani</p>
                 <p>Tanggal: {escape(tanggal_str)}<br><b>Barang Dibeli:</b></p>
-                <hr style=\"border-top: 1px dashed #000;\">
+                <hr style='border-top: 1px dashed #000;'>
                 <div style='font-family: monospace;'>
                     {escape(barang['Nama'])} x{int(barang['Jumlah'])} @Rp {barang['Harga per Satuan']:,.0f}<br>
                     Total: Rp {int(barang['Jumlah'] * barang['Harga per Satuan']):,}
-                    <hr style=\"border-top: 1px dotted #ccc;\">
+                    <hr style='border-top: 1px dotted #ccc;'>
                 </div>
                 <div style='font-family: monospace; font-weight: bold;'>
                     TOTAL: Rp {int(barang['Jumlah'] * barang['Harga per Satuan']):,}
                 </div>
-                <p style=\"text-align:center; font-family: monospace;\">-- Terima kasih atas kunjungan Anda --</p>
+                <p style='text-align:center; font-family: monospace;'>-- Terima kasih atas kunjungan Anda --</p>
             </div>
             """
 
@@ -159,5 +158,8 @@ with edit_tab:
                 save_data(st.session_state.data)
                 st.success("Data berhasil dihapus!")
                 st.rerun()
+    else:
+        st.info("Belum ada data untuk diedit atau dihapus.")
+
     else:
         st.info("Belum ada data untuk diedit atau dihapus.")

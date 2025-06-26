@@ -6,13 +6,21 @@ from html import escape
 import pandas as pd
 import os
 
-# Styling global supaya teks hitam dan background putih
+# Styling global supaya teks hitam dan background putih + tabel lebih kontras
 st.markdown(
     """
     <style>
     body, div, p, h3 {
         color: #000 !important;
         background-color: #fff !important;
+    }
+    .stDataFrame table {
+        background-color: #fff !important;
+        color: #000 !important;
+    }
+    .stDataFrame th, .stDataFrame td {
+        background-color: #f5f5f5 !important;
+        color: #000 !important;
     }
     </style>
     """,
@@ -131,4 +139,3 @@ with edit_tab:
                 st.rerun()
     else:
         st.info("Belum ada data untuk diedit atau dihapus.")
-

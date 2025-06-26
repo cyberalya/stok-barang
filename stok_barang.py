@@ -11,6 +11,10 @@ st.markdown("""
         background-color: white;
         color: black;
     }
+    label, .stTextInput>div>input, .stNumberInput>div>input,
+    .stNumberInput>div>div>input, .stAlert>div, .css-1cpxqw2 {
+        color: black !important;
+    }
     .stButton>button {
         background-color: #00cec9;
         color: white;
@@ -135,5 +139,6 @@ else:
     if st.button("Logout"):
         st.session_state.logged_in = False
         st.rerun()
+
 
 

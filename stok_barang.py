@@ -43,7 +43,7 @@ with pembelian_tab:
             tanggal_str = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
             html_struk = f"""
-            <div style=\"font-family: monospace; padding: 1em; border: 1px dashed #888; max-width: 400px; margin: auto; background: #fdfdfd;\">
+            <div style=\"font-family: monospace; color: #000000; padding: 1em; border: 1px dashed #888; max-width: 400px; margin: auto; background: #ffffff;\">
                 <h3 style=\"text-align:center;\">🛍️ toko budi plastik</h3>
                 <p style=\"text-align:center;\">jln.jend.ahmad yani</p>
                 <p>Tanggal: {escape(tanggal_str)}<br><b>Barang Dibeli:</b></p>
@@ -118,4 +118,3 @@ with edit_tab:
                 st.rerun()
     else:
         st.info("Belum ada data untuk diedit atau dihapus.")
-

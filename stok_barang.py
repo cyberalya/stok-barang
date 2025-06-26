@@ -22,9 +22,13 @@ st.markdown("""
         background-color: #0984e3;
         color: white;
     }
-    .stTextInput>div>input, .stNumberInput>div>input {
-        background-color: #ffffff;
-        color: #2d3436;
+    input, textarea, .stTextInput input, .stNumberInput input {
+        background-color: #ffffff !important;
+        color: #2d3436 !important;
+    }
+    .stTextInput>div>div>input,
+    .stNumberInput>div>div>input {
+        color: #2d3436 !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -130,11 +134,6 @@ else:
     # --- Fitur Export Data ---
     if not data.empty:
         st.download_button("📥 Download Data CSV", data.to_csv(index=False).encode('utf-8'), "stok_data.csv", "text/csv")
-
-    if st.button("Logout"):
-        st.session_state.logged_in = False
-        st.rerun()
-
 
     if st.button("Logout"):
         st.session_state.logged_in = False

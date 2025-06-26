@@ -6,6 +6,19 @@ from html import escape
 import pandas as pd
 import os
 
+# Styling global supaya teks hitam dan background putih
+st.markdown(
+    """
+    <style>
+    body, div, p, h3 {
+        color: #000 !important;
+        background-color: #fff !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 # Fungsi simpan dan load data
 @st.cache_data
 def load_data():
@@ -118,3 +131,4 @@ with edit_tab:
                 st.rerun()
     else:
         st.info("Belum ada data untuk diedit atau dihapus.")
+

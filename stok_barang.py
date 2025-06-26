@@ -98,5 +98,3 @@ def generate_receipt(nama_toko, alamat, no_hp, nama_barang, jumlah, harga_satuan
     </body>
     </html>
     """
-
-# (Sisa kode tetap, tidak perlu diubah ulang karena instruksi hanya menyangkut struk print otomatis tab baru)

@@ -43,6 +43,10 @@ body, div, p, h3, h1, h2, h4, h5, h6, label, span, input, select, option, textar
     background-color: white !important;
     color: black !important;
 }
+label[data-testid="stWidgetLabel"] > div {
+    color: black !important;
+    font-weight: bold;
+}
 </style>
 """
 
@@ -74,43 +78,47 @@ with pembelian_tab:
     st.write("### 🛒 Pembelian")
     if not st.session_state.data.empty:
         selected_item = st.selectbox("Pilih barang untuk dibeli", st.session_state.data.index, format_func=lambda i: f"{st.session_state.data.at[i, 'Nama']}")
-        jumlah_beli = st.number_input("Jumlah dibeli", min_value=1, max_value=int(st.session_state.data.at[selected_item, "Jumlah"]), step=1)
+        stok_tersedia = int(st.session_state.data.at[selected_item, "Jumlah"])
+        if stok_tersedia > 0:
+            jumlah_beli = st.number_input("Jumlah dibeli", min_value=1, max_value=stok_tersedia, step=1)
 
-        if st.button("🧾 Cetak Struk Belanja"):
-            barang = st.session_state.data.loc[selected_item].copy()
-            barang["Jumlah"] = jumlah_beli
-            st.session_state.data.at[selected_item, "Jumlah"] -= jumlah_beli
-            save_data(st.session_state.data)
+            if st.button("🧾 Cetak Struk Belanja"):
+                barang = st.session_state.data.loc[selected_item].copy()
+                barang["Jumlah"] = jumlah_beli
+                st.session_state.data.at[selected_item, "Jumlah"] -= jumlah_beli
+                save_data(st.session_state.data)
 
-            tanggal_str = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                tanggal_str = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-            html_struk = f"""
-            <div style='font-family: monospace; color: #000000; padding: 1em; border: 1px dashed #888; max-width: 400px; margin: auto; background: #ffffff;'>
-                <h3 style='text-align:center;'>🛍️ toko budi plastik</h3>
-                <p style='text-align:center;'>jln.jend.ahmad yani</p>
-                <p>Tanggal: {escape(tanggal_str)}<br><b>Barang Dibeli:</b></p>
-                <hr style='border-top: 1px dashed #000;'>
-                <div style='font-family: monospace;'>
-                    {escape(barang['Nama'])} x{int(barang['Jumlah'])} @Rp {barang['Harga per Satuan']:,.0f}<br>
-                    Total: Rp {int(barang['Jumlah'] * barang['Harga per Satuan']):,}
-                    <hr style='border-top: 1px dotted #ccc;'>
+                html_struk = f"""
+                <div style='font-family: monospace; color: #000000; padding: 1em; border: 1px dashed #888; max-width: 400px; margin: auto; background: #ffffff;'>
+                    <h3 style='text-align:center;'>🛍️ toko budi plastik</h3>
+                    <p style='text-align:center;'>jln.jend.ahmad yani</p>
+                    <p>Tanggal: {escape(tanggal_str)}<br><b>Barang Dibeli:</b></p>
+                    <hr style='border-top: 1px dashed #000;'>
+                    <div style='font-family: monospace;'>
+                        {escape(barang['Nama'])} x{int(barang['Jumlah'])} @Rp {barang['Harga per Satuan']:,.0f}<br>
+                        Total: Rp {int(barang['Jumlah'] * barang['Harga per Satuan']):,}
+                        <hr style='border-top: 1px dotted #ccc;'>
+                    </div>
+                    <div style='font-family: monospace; font-weight: bold;'>
+                        TOTAL: Rp {int(barang['Jumlah'] * barang['Harga per Satuan']):,}
+                    </div>
+                    <p style='text-align:center; font-family: monospace;'>-- Terima kasih atas kunjungan Anda --</p>
                 </div>
-                <div style='font-family: monospace; font-weight: bold;'>
-                    TOTAL: Rp {int(barang['Jumlah'] * barang['Harga per Satuan']):,}
-                </div>
-                <p style='text-align:center; font-family: monospace;'>-- Terima kasih atas kunjungan Anda --</p>
-            </div>
-            """
+                """
 
-            st.markdown(html_struk, unsafe_allow_html=True)
+                st.markdown(html_struk, unsafe_allow_html=True)
 
-            # Simpan ke file HTML
-            struk_file = BytesIO()
-            html_content = f"<html><body>{html_struk}</body></html>"
-            struk_file.write(html_content.encode("utf-8"))
-            struk_file.seek(0)
+                # Simpan ke file HTML
+                struk_file = BytesIO()
+                html_content = f"<html><body>{html_struk}</body></html>"
+                struk_file.write(html_content.encode("utf-8"))
+                struk_file.seek(0)
 
-            st.download_button("📄 Download Struk (HTML)", data=struk_file, file_name="struk-belanja.html", mime="text/html")
+                st.download_button("📄 Download Struk (HTML)", data=struk_file, file_name="struk-belanja.html", mime="text/html")
+        else:
+            st.warning("Stok barang ini sudah habis.")
 
 # TAMBAH / EDIT BARANG
 with edit_tab:
@@ -160,3 +168,4 @@ with edit_tab:
                 st.rerun()
     else:
         st.info("Belum ada data untuk diedit atau dihapus.")
+

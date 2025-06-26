@@ -137,7 +137,11 @@ else:
                 st.success("Barang berhasil ditambahkan!")
 
         st.write("\n### 📊 Tabel Stok")
-        st.dataframe(st.session_state.data)
+
+        # Fitur pencarian
+        keyword = st.text_input("🔍 Cari nama barang")
+        filtered_data = st.session_state.data[st.session_state.data['Nama'].str.contains(keyword, case=False, na=False)]
+        st.dataframe(filtered_data)
 
         if not st.session_state.data.empty:
             total_nilai = (st.session_state.data["Jumlah"] * st.session_state.data["Harga per Satuan"]).sum()

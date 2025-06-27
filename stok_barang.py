@@ -187,7 +187,7 @@ else:
                     st.success("Barang dihapus!")
                     st.rerun()
 
-    elif page == "Tabel Sisa Stok":
+elif page == "Tabel Sisa Stok":
     st.title("📊 Tabel Sisa Stok")
 
     if st.session_state.data.empty:

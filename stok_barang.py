@@ -19,6 +19,12 @@ st.markdown("""
     .stNumberInput>div>div>input, .stAlert>div, .css-1cpxqw2 {
         color: black !important;
     }
+
+    .stRadio > div label {
+        color: black !important;
+        font-weight: 500;
+    }
+
     .stButton>button {
         background-color: #00cec9;
         color: white;
@@ -43,6 +49,7 @@ st.markdown("""
     }
     </style>
 """, unsafe_allow_html=True)
+
 
 
 # --- Fungsi Login ---

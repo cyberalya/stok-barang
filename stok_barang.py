@@ -187,7 +187,7 @@ else:
                     st.success("Barang dihapus!")
                     st.rerun()
 
-        elif page == "Tabel Sisa Stok":
+    elif page == "Tabel Sisa Stok":
     st.title("📊 Tabel Sisa Stok")
 
     if st.session_state.data.empty:
@@ -196,6 +196,7 @@ else:
         # Hapus kolom jumlah terjual jika ada
         tampil_data = st.session_state.data.drop(columns=["Jumlah Terjual"], errors="ignore")
         st.dataframe(tampil_data[["Nama", "Jumlah", "Harga per Satuan", "Harga per Bal", "Satuan per Bal"]])
+
 
         elif page == "Penjualan":
         st.title("🛒 Form Penjualan Barang")

@@ -145,11 +145,13 @@ else:
             st.markdown(html_struk, unsafe_allow_html=True)
 
             # Simpan ke file HTML
-            struk_file = StringIO()
-            struk_file.write("<html><body>" + html_struk + "</body></html>")
-            struk_file.seek(0)
+            struk_file = BytesIO()
+html_content = f"<html><body>{html_struk}</body></html>"
+struk_file.write(html_content.encode("utf-8"))
+struk_file.seek(0)
 
-            st.download_button("📄 Download Struk (HTML)", data=struk_file, file_name="struk-belanja.html", mime="text/html")
+st.download_button("📄 Download Struk (HTML)", data=struk_file, file_name="struk-belanja.html", mime="text/html")
+
 
     # --- Logout ---
     if st.button("Logout"):

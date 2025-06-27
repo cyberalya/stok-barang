@@ -128,7 +128,7 @@ else:
     page = st.sidebar.radio("Navigasi", ["Tambah/Edit Barang", "Tabel Sisa Stok", "Penjualan"])
 
 
-        if page == "Tambah/Edit Barang":
+    if page == "Tambah/Edit Barang":
         st.title("📋 Tambah / Edit Barang")
         
         # Form input barang baru

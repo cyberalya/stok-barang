@@ -2,8 +2,12 @@ import streamlit as st
 import pandas as pd
 import os
 from datetime import datetime
+import streamlit.components.v1 as components
 
-# --- CSS Styling ---
+# Konfigurasi halaman Streamlit
+st.set_page_config(page_title="Stok Barang Toko Budi Plastik", page_icon="📦")
+
+# CSS Styling agar tampilannya lebih rapi dan modern
 st.markdown("""
     <style>
     .stApp {
@@ -40,6 +44,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+
 # --- Fungsi Login ---
 def load_users():
     if os.path.exists("users.csv"):
@@ -55,7 +60,10 @@ def check_login(username, password):
 def load_data():
     if os.path.exists("stok_data.csv"):
         return pd.read_csv("stok_data.csv")
-    return pd.DataFrame(columns=["Nama", "Jumlah", "Harga per Satuan", "Harga per Bal", "Tanggal Input"])
+    return pd.DataFrame(columns=[
+        "Nama", "Jumlah", "Harga per Satuan", "Harga per Bal", 
+        "Satuan per Bal", "Tanggal Input"
+    ])
 
 def save_data(data):
     data.to_csv("stok_data.csv", index=False)
@@ -65,40 +73,43 @@ def save_data(data):
 def load_sales():
     if os.path.exists("penjualan.csv"):
         return pd.read_csv("penjualan.csv")
-    return pd.DataFrame(columns=["Nama", "Jumlah Terjual", "Tanggal Jual"])
+    return pd.DataFrame(columns=[
+        "Nama", "Jumlah Terjual", "Jenis", "Total Harga", "Tanggal Jual"
+    ])
 
 def save_sales(sales_data):
     sales_data.to_csv("penjualan.csv", index=False)
 
-# --- Fungsi Struk ---
-def generate_receipt(nama_toko, alamat, no_hp, nama_barang, jumlah, harga_satuan):
-    total = jumlah * harga_satuan
+# --- Fungsi Cetak Struk ---
+def generate_receipt(nama_toko, alamat, nama_barang, jumlah, jenis, harga, total):
     waktu = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     return f"""
-    <div style='background-color:white;padding:20px;font-family:monospace;color:black;'>
-        <h3 style='text-align:center;'>{nama_toko}</h3>
+    <div style='background:white; padding:10px; width:250px; font-family:monospace; color:black;'>
+        <h4 style='text-align:center;'>*** {nama_toko} ***</h4>
         <p style='text-align:center;'>{alamat}</p>
-        <p style='text-align:center;'>Telp: {no_hp}</p>
         <hr>
         <p>Barang   : {nama_barang}</p>
+        <p>Jenis    : {jenis}</p>
         <p>Jumlah   : {jumlah}</p>
-        <p>Harga    : Rp {harga_satuan:,.2f}</p>
+        <p>Harga    : Rp {harga:,.2f}</p>
         <p>Total    : <b>Rp {total:,.2f}</b></p>
         <hr>
         <p style='text-align:center;'>{waktu}</p>
+        <p style='text-align:center;'>Terima Kasih</p>
     </div>
     """
 
-# --- App ---
-st.set_page_config(page_title="Stok Barang Toko Budi Plastik", page_icon="📦")
-
+# --- Setup Awal Session ---
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
+
 if "data" not in st.session_state:
     st.session_state.data = load_data()
+
 if "sales" not in st.session_state:
     st.session_state.sales = load_sales()
 
+# --- Autentikasi ---
 if not st.session_state.logged_in:
     st.title("📦 Stok Barang Toko Budi Plastik")
     st.subheader("🔐 Login")
@@ -108,52 +119,127 @@ if not st.session_state.logged_in:
         if check_login(username, password):
             st.session_state.logged_in = True
             st.success("Login berhasil!")
+            st.rerun()
         else:
             st.error("Username/password salah!")
+
+# --- Navigasi ---
 else:
     page = st.sidebar.radio("Navigasi", ["Tambah/Edit Barang", "Tabel Sisa Stok", "Penjualan"])
 
-    if page == "Penjualan":
-        st.title("🛒 Form Penjualan Barang")
-        if st.session_state.data.empty:
-            st.warning("Belum ada data barang untuk dijual.")
-        else:
-            keyword = st.text_input("🔍 Cari nama barang")
-            filtered_names = st.session_state.data[st.session_state.data["Nama"].str.contains(keyword, case=False, na=False)]["Nama"].unique()
-            nama_barang = st.selectbox("Pilih Barang", filtered_names)
-            jumlah_jual = st.number_input("Jumlah yang Dijual", min_value=1, step=1)
-            if st.button("Simpan Penjualan"):
-                index = st.session_state.data[st.session_state.data["Nama"] == nama_barang].index[0]
-                stok_tersedia = st.session_state.data.at[index, "Jumlah"]
-                if jumlah_jual > stok_tersedia:
-                    st.error("Jumlah penjualan melebihi stok tersedia!")
-                else:
-                    st.session_state.data.at[index, "Jumlah"] -= jumlah_jual
+
+        if page == "Tambah/Edit Barang":
+        st.title("📋 Tambah / Edit Barang")
+        
+        # Form input barang baru
+        nama = st.text_input("Nama Barang")
+        jumlah = st.number_input("Jumlah (Satuan)", min_value=0, step=1)
+        harga_satuan = st.number_input("Harga per Satuan", min_value=0.0, step=100.0)
+        harga_bal = st.number_input("Harga per Bal", min_value=0.0, step=100.0)
+        satuan_per_bal = st.number_input("Jumlah Satuan per Bal", min_value=1, step=1)
+
+        if st.button("➕ Tambah Barang"):
+            tanggal = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            new_row = pd.DataFrame({
+                "Nama": [nama],
+                "Jumlah": [jumlah],
+                "Harga per Satuan": [harga_satuan],
+                "Harga per Bal": [harga_bal],
+                "Satuan per Bal": [satuan_per_bal],
+                "Tanggal Input": [tanggal]
+            })
+            st.session_state.data = pd.concat([st.session_state.data, new_row], ignore_index=True)
+            save_data(st.session_state.data)
+            st.success("Barang berhasil ditambahkan!")
+
+        # Tabel stok (tanpa kolom jumlah terjual)
+        st.write("### 📦 Daftar Barang")
+        tampil_data = st.session_state.data.drop(columns=["Jumlah Terjual"], errors="ignore")
+        st.dataframe(tampil_data)
+
+        # Edit/Hapus Barang
+        if not st.session_state.data.empty:
+            idx_edit = st.selectbox("Pilih barang untuk Edit/Hapus", st.session_state.data.index,
+                format_func=lambda i: f"{st.session_state.data.at[i, 'Nama']} (Stok: {st.session_state.data.at[i, 'Jumlah']})")
+
+            row = st.session_state.data.loc[idx_edit]
+            new_nama = st.text_input("Edit Nama", row["Nama"], key="edit_nama")
+            new_jumlah = st.number_input("Edit Jumlah", min_value=0, step=1, value=int(row["Jumlah"]), key="edit_jumlah")
+            new_satuan = st.number_input("Edit Harga per Satuan", min_value=0.0, step=100.0, value=float(row["Harga per Satuan"]), key="edit_satuan")
+            new_bal = st.number_input("Edit Harga per Bal", min_value=0.0, step=100.0, value=float(row["Harga per Bal"]), key="edit_bal")
+            new_konversi = st.number_input("Edit Satuan per Bal", min_value=1, step=1, value=int(row["Satuan per Bal"]), key="edit_konversi")
+
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("💾 Simpan Perubahan"):
+                    st.session_state.data.at[idx_edit, "Nama"] = new_nama
+                    st.session_state.data.at[idx_edit, "Jumlah"] = new_jumlah
+                    st.session_state.data.at[idx_edit, "Harga per Satuan"] = new_satuan
+                    st.session_state.data.at[idx_edit, "Harga per Bal"] = new_bal
+                    st.session_state.data.at[idx_edit, "Satuan per Bal"] = new_konversi
                     save_data(st.session_state.data)
+                    st.success("Data barang diperbarui!")
+                    st.rerun()
+            with col2:
+                if st.button("🗑️ Hapus Barang"):
+                    st.session_state.data = st.session_state.data.drop(idx_edit).reset_index(drop=True)
+                    save_data(st.session_state.data)
+                    st.success("Barang dihapus!")
+                    st.rerun()
+
+        elif page == "Tabel Sisa Stok":
+        st.title("📊 Tabel Sisa Stok")
+
+        if st.session_state.data.empty:
+            st.info("Belum ada data barang.")
+        else:
+            # Hapus kolom jumlah terjual jika ada
+            tampil_data = st.session_state.data.drop(columns=["Jumlah Terjual"], errors="ignore")
+            st.dataframe(tampil_data[["Nama", "Jumlah", "Harga per Satuan", "Harga per Bal", "Satuan per Bal"]])
+
+    elif page == "Penjualan":
+        st.title("🛒 Penjualan Barang")
+        keyword = st.text_input("🔍 Cari Nama Barang")
+        filtered = st.session_state.data[st.session_state.data["Nama"].str.contains(keyword, case=False, na=False)]
+        
+        if filtered.empty:
+            st.warning("Barang tidak ditemukan.")
+        else:
+            nama_barang = st.selectbox("Pilih Barang", filtered["Nama"].unique())
+            satuan_atau_bal = st.radio("Jenis Penjualan", ["Per Satuan", "Per Bal"])
+            index = st.session_state.data[st.session_state.data["Nama"] == nama_barang].index[0]
+
+            if satuan_atau_bal == "Per Satuan":
+                jumlah_jual = st.number_input("Jumlah (Satuan)", min_value=1, step=1)
+                harga = st.session_state.data.at[index, "Harga per Satuan"]
+                stok = st.session_state.data.at[index, "Jumlah"]
+                jumlah_pengurangan = jumlah_jual
+            else:
+                jumlah_jual = st.number_input("Jumlah (Bal)", min_value=1, step=1)
+                harga = st.session_state.data.at[index, "Harga per Bal"]
+                stok = st.session_state.data.at[index, "Jumlah"]
+                satuan_per_bal = st.session_state.data.at[index, "Satuan per Bal"]
+                jumlah_pengurangan = jumlah_jual * satuan_per_bal
+
+            if st.button("Simpan Penjualan"):
+                if jumlah_pengurangan > stok:
+                    st.error("Jumlah melebihi stok tersedia!")
+                else:
+                    st.session_state.data.at[index, "Jumlah"] -= jumlah_pengurangan
+                    save_data(st.session_state.data)
+
                     tanggal = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    new_sale = pd.DataFrame({
-                        "Nama": [nama_barang],
-                        "Jumlah Terjual": [jumlah_jual],
-                        "Tanggal Jual": [tanggal]
-                    })
+                    new_sale = pd.DataFrame([{
+                        "Nama": nama_barang,
+                        "Jumlah Terjual": jumlah_jual,
+                        "Satuan/Bal": satuan_atau_bal,
+                        "Tanggal Jual": tanggal
+                    }])
                     st.session_state.sales = pd.concat([st.session_state.sales, new_sale], ignore_index=True)
                     save_sales(st.session_state.sales)
-                    struk_html = generate_receipt("Toko Budi Plastik", "Jl. Jend. Ahmad Yani No. 8", "0812-3456-7890", nama_barang, jumlah_jual, st.session_state.data.at[index, "Harga per Satuan"])
-                    st.markdown(struk_html, unsafe_allow_html=True)
 
-                    st.markdown("""
-                        <script>
-                            function printStruk() {
-                                const newWin = window.open('', '_blank');
-                                newWin.document.write(`""" + struk_html + """`);
-                                newWin.document.close();
-                                newWin.focus();
-                                newWin.print();
-                            }
-                        </script>
-                        <button onclick="printStruk()" style="background-color:#00cec9;color:white;padding:0.5em 1em;border:none;border-radius:8px;margin-top:10px;">🖨️ Cetak Struk Langsung</button>
-                    """, unsafe_allow_html=True)
-
-                    st.download_button("📄 Download Struk (HTML)", data=struk_html, file_name="struk-belanja.html", mime="text/html")
-                    st.success("Penjualan berhasil disimpan dan struk dicetak!")
-                    st.rerun()
+                    total = jumlah_jual * harga
+                    struk = generate_receipt("Toko Budi Plastik", "Jl. Jend. Ahmad Yani No. 8", nama_barang, jumlah_jual, satuan_atau_bal, harga, total)
+                    st.markdown(struk, unsafe_allow_html=True)
+                    st.download_button("📄 Download Struk", data=struk, file_name="struk.html", mime="text/html")
+                    st.success("Penjualan berhasil disimpan!")

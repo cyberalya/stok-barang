@@ -188,14 +188,14 @@ else:
                     st.rerun()
 
         elif page == "Tabel Sisa Stok":
-        st.title("📊 Tabel Sisa Stok")
+    st.title("📊 Tabel Sisa Stok")
 
-        if st.session_state.data.empty:
-            st.info("Belum ada data barang.")
-        else:
-            # Hapus kolom jumlah terjual jika ada
-            tampil_data = st.session_state.data.drop(columns=["Jumlah Terjual"], errors="ignore")
-            st.dataframe(tampil_data[["Nama", "Jumlah", "Harga per Satuan", "Harga per Bal", "Satuan per Bal"]])
+    if st.session_state.data.empty:
+        st.info("Belum ada data barang.")
+    else:
+        # Hapus kolom jumlah terjual jika ada
+        tampil_data = st.session_state.data.drop(columns=["Jumlah Terjual"], errors="ignore")
+        st.dataframe(tampil_data[["Nama", "Jumlah", "Harga per Satuan", "Harga per Bal", "Satuan per Bal"]])
 
         elif page == "Penjualan":
         st.title("🛒 Form Penjualan Barang")

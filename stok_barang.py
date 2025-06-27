@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import os
 from datetime import datetime
-from io import StringIO
+from io import BytesIO
 from html import escape
 
 # --- Styling ---

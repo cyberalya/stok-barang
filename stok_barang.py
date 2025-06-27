@@ -3,7 +3,7 @@ import pandas as pd
 import os
 from datetime import datetime
 import streamlit.components.v1 as components
-import base64
+from html import escape
 
 # --- CSS Styling ---
 st.markdown("""
@@ -77,45 +77,20 @@ def generate_receipt(nama_toko, alamat, nama_barang, jumlah, harga_satuan):
     total = jumlah * harga_satuan
     waktu = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     return f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Struk Belanja</title>
-        <style>
-            body {{
-                font-family: monospace;
-                background-color: white;
-                color: black;
-                padding: 20px;
-            }}
-            h3, p {{
-                text-align: center;
-            }}
-            hr {{
-                margin: 10px 0;
-            }}
-        </style>
-    </head>
-    <body>
-        <h3>{nama_toko}</h3>
-        <p>{alamat}</p>
+    <div style='background-color:white;padding:20px;font-family:monospace;color:black;'>
+        <h3 style='text-align:center;'>{nama_toko}</h3>
+        <p style='text-align:center;'>{alamat}</p>
         <hr>
         <p>Barang   : {nama_barang}</p>
         <p>Jumlah   : {jumlah}</p>
         <p>Harga    : Rp {harga_satuan:,.2f}</p>
         <p>Total    : <b>Rp {total:,.2f}</b></p>
         <hr>
-        <p>{waktu}</p>
-        <script>
-            window.onload = () => {{
-                window.print();
-            }};
-        </script>
-    </body>
-    </html>
+        <p style='text-align:center;'>{waktu}</p>
+    </div>
     """
 
-# --- App ---
+# --- App Start ---
 st.set_page_config(page_title="Stok Barang Toko Budi Plastik", page_icon="📦")
 
 if "logged_in" not in st.session_state:
@@ -139,9 +114,82 @@ if not st.session_state.logged_in:
         else:
             st.error("Username/password salah!")
 else:
-    page = st.sidebar.radio("Navigasi", ["Tambah/Edit Barang", "Tabel Sisa Stok", "Penjualan"])
+    page = st.sidebar.radio("Navigasi", ["Tambah/Edit Barang", "Tabel Sisa Stok", "Penjualan", "Struk Terakhir"])
 
-    if page == "Penjualan":
+    if page == "Tambah/Edit Barang":
+        st.title("📋 Data Stok Barang")
+        nama = st.text_input("Nama Barang")
+        jumlah = st.number_input("Jumlah", min_value=0, step=1)
+        harga_satuan = st.number_input("Harga per Satuan", min_value=0.0, step=100.0, format="%.2f")
+        harga_bal = st.number_input("Harga per Bal", min_value=0.0, step=100.0, format="%.2f")
+
+        if st.button("Tambah Barang"):
+            tanggal = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            new_data = pd.DataFrame({
+                "Nama": [nama],
+                "Jumlah": [jumlah],
+                "Harga per Satuan": [harga_satuan],
+                "Harga per Bal": [harga_bal],
+                "Tanggal Input": [tanggal]
+            })
+            st.session_state.data = pd.concat([st.session_state.data, new_data], ignore_index=True)
+            save_data(st.session_state.data)
+            st.success("Barang berhasil ditambahkan!")
+
+        st.write("### 📊 Tabel Stok")
+        keyword = st.text_input("🔍 Cari nama barang")
+        filtered_data = st.session_state.data[st.session_state.data['Nama'].str.contains(keyword, case=False, na=False)]
+        st.dataframe(filtered_data)
+
+        if not st.session_state.data.empty:
+            total_nilai = (st.session_state.data["Jumlah"] * st.session_state.data["Harga per Satuan"]).sum()
+            st.info(f"💰 Total Nilai Stok: Rp {total_nilai:,.2f}")
+
+        st.write("### ✏️ Edit / Hapus Barang")
+        if not st.session_state.data.empty:
+            selected_index = st.selectbox(
+                "Pilih barang untuk edit/hapus",
+                st.session_state.data.index,
+                format_func=lambda i: f"{st.session_state.data.at[i, 'Nama']} (Jumlah: {st.session_state.data.at[i, 'Jumlah']})"
+            )
+            selected_row = st.session_state.data.loc[selected_index]
+            new_nama = st.text_input("Edit Nama", selected_row["Nama"])
+            new_jumlah = st.number_input("Edit Jumlah", min_value=0, step=1, value=int(selected_row["Jumlah"]))
+            new_satuan = st.number_input("Edit Harga per Satuan", min_value=0.0, step=100.0, value=float(selected_row["Harga per Satuan"]), format="%.2f")
+            new_bal = st.number_input("Edit Harga per Bal", min_value=0.0, step=100.0, value=float(selected_row["Harga per Bal"]), format="%.2f")
+
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("💾 Simpan Perubahan"):
+                    st.session_state.data.at[selected_index, "Nama"] = new_nama
+                    st.session_state.data.at[selected_index, "Jumlah"] = new_jumlah
+                    st.session_state.data.at[selected_index, "Harga per Satuan"] = new_satuan
+                    st.session_state.data.at[selected_index, "Harga per Bal"] = new_bal
+                    save_data(st.session_state.data)
+                    st.success("Data berhasil diperbarui!")
+                    st.rerun()
+            with col2:
+                if st.button("🗑️ Hapus Barang"):
+                    st.session_state.data = st.session_state.data.drop(selected_index).reset_index(drop=True)
+                    save_data(st.session_state.data)
+                    st.success("Data berhasil dihapus!")
+                    st.rerun()
+
+        if not st.session_state.data.empty:
+            st.download_button("📥 Download Data CSV", st.session_state.data.to_csv(index=False).encode('utf-8'), "stok_data.csv", "text/csv")
+
+        if st.button("Logout"):
+            st.session_state.logged_in = False
+            st.rerun()
+
+    elif page == "Tabel Sisa Stok":
+        st.title("📊 Tabel Sisa Stok Barang")
+        if st.session_state.data.empty:
+            st.info("Belum ada data barang.")
+        else:
+            st.dataframe(st.session_state.data[["Nama", "Jumlah"]])
+
+    elif page == "Penjualan":
         st.title("🛒 Form Penjualan Barang")
         if st.session_state.data.empty:
             st.warning("Belum ada data barang untuk dijual.")
@@ -150,6 +198,7 @@ else:
             filtered_names = st.session_state.data[st.session_state.data["Nama"].str.contains(keyword, case=False, na=False)]["Nama"].unique()
             nama_barang = st.selectbox("Pilih Barang", filtered_names)
             jumlah_jual = st.number_input("Jumlah yang Dijual", min_value=1, step=1)
+
             if st.button("Simpan Penjualan"):
                 index = st.session_state.data[st.session_state.data["Nama"] == nama_barang].index[0]
                 stok_tersedia = st.session_state.data.at[index, "Jumlah"]
@@ -167,25 +216,28 @@ else:
                     st.session_state.sales = pd.concat([st.session_state.sales, new_sale], ignore_index=True)
                     save_sales(st.session_state.sales)
 
-                    # Simpan struk ke variabel sesi
-                    struk_html = generate_receipt(
-                        "Toko Budi Plastik",
-                        "Jl. Jend. Ahmad Yani No. 8",
-                        nama_barang,
-                        jumlah_jual,
-                        st.session_state.data.at[index, "Harga per Satuan"]
-                    )
+                    struk_html = generate_receipt("Toko Budi Plastik", "Jl. Jend. Ahmad Yani No. 8", nama_barang, jumlah_jual, st.session_state.data.at[index, "Harga per Satuan"])
                     st.session_state.last_receipt = struk_html
 
-                    # Encode struk ke base64 supaya bisa dibuka di tab baru
-                    encoded = base64.b64encode(struk_html.encode()).decode()
-                    href = f'<a href="data:text/html;base64,{encoded}" target="_blank">🧾 Buka Struk di Tab Baru</a>'
-                    st.markdown(href, unsafe_allow_html=True)
+                    # Tampilkan struk di tab baru
+                    escaped_html = escape(struk_html).replace("\n", "").replace("\"", "'")
+                    components.html(f"""
+                        <script>
+                            const win = window.open("", "_blank");
+                            win.document.write(`{escaped_html}`);
+                            win.document.close();
+                            win.focus();
+                            win.print();
+                        </script>
+                    """, height=0)
 
-                    st.download_button("📄 Download Struk (HTML)", data=struk_html, file_name="struk-belanja.html", mime="text/html")
-                    st.success("Penjualan berhasil disimpan!")
+                    st.success("Penjualan berhasil disimpan dan struk dicetak!")
+                    st.rerun()
 
+    elif page == "Struk Terakhir":
+        st.title("🧾 Struk Terakhir")
         if st.session_state.last_receipt:
-            with st.expander("📄 Lihat Struk Terakhir"):
-                st.components.v1.html(st.session_state.last_receipt, height=400)
-
+            st.markdown(st.session_state.last_receipt, unsafe_allow_html=True)
+            st.download_button("📄 Download Struk HTML", data=st.session_state.last_receipt, file_name="struk-belanja.html", mime="text/html")
+        else:
+            st.info("Belum ada struk yang dicetak.")

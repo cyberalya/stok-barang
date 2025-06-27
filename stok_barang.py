@@ -76,19 +76,21 @@ def save_sales(sales_data):
 def generate_receipt(nama_toko, alamat, nama_barang, jumlah, harga_satuan):
     total = jumlah * harga_satuan
     waktu = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    return f"""
-    <div style='background-color:white;padding:20px;font-family:monospace;color:black;'>
-        <h3 style='text-align:center;'>{nama_toko}</h3>
-        <p style='text-align:center;'>{alamat}</p>
-        <hr>
-        <p>Barang   : {nama_barang}</p>
-        <p>Jumlah   : {jumlah}</p>
-        <p>Harga    : Rp {harga_satuan:,.2f}</p>
-        <p>Total    : <b>Rp {total:,.2f}</b></p>
-        <hr>
-        <p style='text-align:center;'>{waktu}</p>
-    </div>
-    """
+   return f"""
+<div style='width:280px; background-color:white; padding:10px; font-family:monospace; color:black;'>
+    <h4 style='text-align:center; margin:0;'>Toko Budi Plastik</h4>
+    <p style='text-align:center; margin:0;'>Jl. Jend. Ahmad Yani No. 8</p>
+    <hr>
+    <p>Barang   : {nama_barang}</p>
+    <p>Jumlah   : {jumlah}</p>
+    <p>Harga    : Rp {harga_satuan:,.2f}</p>
+    <p><b>Total  : Rp {total:,.2f}</b></p>
+    <hr>
+    <p style='text-align:center; font-size:10px; margin-top:10px;'>{waktu}</p>
+</div>
+"""
+
+    
 
 # --- App Start ---
 st.set_page_config(page_title="Stok Barang Toko Budi Plastik", page_icon="📦")
@@ -221,15 +223,9 @@ else:
 
                     # Tampilkan struk di tab baru
                     escaped_html = escape(struk_html).replace("\n", "").replace("\"", "'")
-                    components.html(f"""
-                        <script>
-                            const win = window.open("", "_blank");
-                            win.document.write(`{escaped_html}`);
-                            win.document.close();
-                            win.focus();
-                            win.print();
-                        </script>
-                    """, height=0)
+                   if st.button("🧾 Lihat Struk"):
+                   components.html(struk_html, height=400, scrolling=True)
+
 
                     st.success("Penjualan berhasil disimpan dan struk dicetak!")
                     st.rerun()

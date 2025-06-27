@@ -76,7 +76,7 @@ def save_sales(sales_data):
 def generate_receipt(nama_toko, alamat, nama_barang, jumlah, harga_satuan):
     total = jumlah * harga_satuan
     waktu = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-   return f"""
+    return f"""
 <div style='width:280px; background-color:white; padding:10px; font-family:monospace; color:black;'>
     <h4 style='text-align:center; margin:0;'>Toko Budi Plastik</h4>
     <p style='text-align:center; margin:0;'>Jl. Jend. Ahmad Yani No. 8</p>
